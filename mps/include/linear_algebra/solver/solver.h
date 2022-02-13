@@ -95,6 +95,9 @@ namespace linear_algebra
         vector<T> r(p);
         auto r_square = r * r;
 
+        if (r_square < precision)
+            return x;
+
         for (size_t i = 0; i < N; i++)
         {
             t = A * p;
@@ -129,6 +132,8 @@ namespace linear_algebra
         vector<T> r(N);
         auto k = A * x;
         r = b - (A * x);
+        if (r * r < precision)
+            return x;
 
         vector<T> z(N);
         auto w = linear_algebra::forward_substitution(L, r);

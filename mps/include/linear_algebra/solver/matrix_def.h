@@ -18,12 +18,13 @@ namespace linear_algebra
         size_t row;
         size_t column;
 
+        matrix();
         matrix(size_t row, size_t column);
         matrix(size_t row, size_t column, const T &value);
         matrix(const matrix<T> &other);
         matrix(matrix<T> &&other);
 
-        void resize(size_t row, size_t column);
+        void resize(size_t r, size_t c);
         void clear();
         void shrink_to_fit();
         void destroy();
@@ -54,6 +55,8 @@ namespace linear_algebra
         matrix<T> operator-() &&;
 
         matrix<T> &operator*=(const T &value);
+        matrix<T> operator*(const T &value) &;
+        matrix<T> operator*(const T &value) &&;
         vector<T> operator*(const vector<T> &vec) &;
         vector<T> operator*(const vector<T> &vec) &&;
         vector<T> operator*(vector<T> &&vec) &;
@@ -67,6 +70,10 @@ namespace linear_algebra
         matrix<T> operator*(const matrix<T> &other) const &;
         matrix<T> operator*(matrix<T> &&other) const &;
 
+        matrix<T> &operator/=(const T &value);
+        matrix<T> operator/(const T &value) &;
+        matrix<T> operator/(const T &value) &&;
+
         matrix<T> transpose();
 
         void print();
@@ -74,6 +81,9 @@ namespace linear_algebra
 
         ~matrix();
     };
+
+    template <typename T>
+    matrix<T>::matrix() : row(0), column(0) {}
 
     template <typename T>
     matrix<T>::matrix(size_t row, size_t column)
@@ -128,8 +138,10 @@ namespace linear_algebra
     }
 
     template <typename T>
-    void matrix<T>::resize(size_t row, size_t column)
+    void matrix<T>::resize(size_t r, size_t c)
     {
+        row = r;
+        column = c;
         A.resize(row);
         for (size_t i = 0; i < row; i++)
         {
@@ -175,7 +187,7 @@ namespace linear_algebra
     matrix<T> &matrix<T>::operator=(const matrix<T> &other)
     {
         if (row != other.row | column != other.column)
-            A.resize(other.row, other.column);
+            this->resize(other.row, other.column);
 
         for (size_t r = 0; r < row; r++)
         {
@@ -190,7 +202,8 @@ namespace linear_algebra
     template <typename T>
     matrix<T> &matrix<T>::operator=(matrix<T> &&other)
     {
-        A.resize(other.row, other.column);
+        if (row != other.row | column != other.column)
+            this->resize(other.row, other.column);
         for (size_t r = 0; r < row; r++)
         {
             for (size_t c = 0; c < column; c++)
@@ -199,6 +212,7 @@ namespace linear_algebra
             }
         }
         other.destroy();
+        return *this;
     }
 
     template <typename T>
@@ -400,6 +414,22 @@ namespace linear_algebra
     }
 
     template <typename T>
+    matrix<T> matrix<T>::operator*(const T &value) &
+    {
+        matrix<T> res(*this);
+        res *= value;
+        return res;
+    }
+
+    template <typename T>
+    matrix<T> matrix<T>::operator*(const T &value) &&
+    {
+        matrix<T> res(move(*this));
+        res *= value;
+        return res;
+    }
+
+    template <typename T>
     vector<T> matrix<T>::operator*(const vector<T> &vec) &
     {
         vector<T> res(this->row, 0);
@@ -570,6 +600,35 @@ namespace linear_algebra
     {
         matrix<T> res(move(mat));
         res *= value;
+        return res;
+    }
+
+    template <typename T>
+    matrix<T> &matrix<T>::operator/=(const T &value)
+    {
+        for (size_t r = 0; r < row; r++)
+        {
+            for (size_t c = 0; c < column; c++)
+            {
+                A[r][c] /= value;
+            }
+        }
+        return *this;
+    }
+
+    template <typename T>
+    matrix<T> matrix<T>::operator/(const T &value) &
+    {
+        matrix<T> res(*this);
+        res /= value;
+        return res;
+    }
+
+    template <typename T>
+    matrix<T> matrix<T>::operator/(const T &value) &&
+    {
+        matrix<T> res(move(*this));
+        res /= value;
         return res;
     }
 
